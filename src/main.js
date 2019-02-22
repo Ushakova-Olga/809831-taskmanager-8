@@ -315,13 +315,13 @@ It is example of repeating task. It marks by wave.</textarea
 };
 
 const filtersData = [
-  {name: `All`, nameCaps: `ALL`, count: 15},
-  {name: `Overdue`, nameCaps: `OVERDUE`, count: 2},
-  {name: `Today`, nameCaps: `TODAY`, count: 3},
-  {name: `Favorites`, nameCaps: `FAVORITES`, count: 1},
-  {name: `Repeating`, nameCaps: `Repeating`, count: 5},
-  {name: `Tags`, nameCaps: `Tags`, count: 1},
-  {name: `Archive`, nameCaps: `ARCHIVE`, count: 3},
+  {name: `All`, count: 15},
+  {name: `Overdue`, count: 2},
+  {name: `Today`, count: 3},
+  {name: `Favorites`, count: 1},
+  {name: `Repeating`, count: 5},
+  {name: `Tags`, count: 1},
+  {name: `Archive`, count: 3},
 ];
 
 const createCountfiltersData = (data) => {
@@ -342,7 +342,7 @@ const renderFilter = (data) => {
       name="filter"
     />
     <label for="filter__${id}" class="filter__label">
-      ${data.nameCaps}
+      ${data.name}
       <span class="filter__${id}-count">${data.count}</span>
     </label>
   `;
