@@ -43,7 +43,7 @@ createCountfiltersData(filtersData);
 const renderFilter = (data) => {
   const id = data.name.toLocaleLowerCase();
 
-  const fragment = renderTemplate(makeFilter(id, data.id, data.count));
+  const fragment = renderTemplate(makeFilter(id, data.name, data.count));
   const input = fragment.querySelector(`input`);
   input.addEventListener(`change`, () => renderTasks(data.count));
   return fragment;
