@@ -1,5 +1,18 @@
-export default () =>
-  `<article class="card card--pink card--repeat">
+export default (task) => {
+  const checkedMo = task.repeatingDays[`mo`] ? `checked` : ``;
+  const checkedTu = task.repeatingDays[`tu`] ? `checked` : ``;
+  const checkedWe = task.repeatingDays[`we`] ? `checked` : ``;
+  const checkedTh = task.repeatingDays[`th`] ? `checked` : ``;
+  const checkedFr = task.repeatingDays[`fr`] ? `checked` : ``;
+  const checkedSa = task.repeatingDays[`sa`] ? `checked` : ``;
+  const checkedSu = task.repeatingDays[`su`] ? `checked` : ``;
+  let repeatStatus = `no`;
+
+  if ((checkedMo === `checked`) || (checkedTu === `checked`) || (checkedWe === `checked`) || (checkedTh === `checked`) || (checkedFr === `checked`) || (checkedSa === `checked`) || (checkedSu === `checked`)) {
+    repeatStatus = `yes`;
+  }
+
+  return `<article class="card card--${task.color} card--repeat">
   <form class="card__form" method="get">
     <div class="card__inner">
       <div class="card__control">
@@ -30,7 +43,7 @@ export default () =>
             placeholder="Start typing your text here..."
             name="text"
           >
-  It is example of repeating task. It marks by wave.</textarea
+  ${task.title}</textarea
           >
         </label>
       </div>
@@ -62,7 +75,7 @@ export default () =>
             </fieldset>
 
             <button class="card__repeat-toggle" type="button">
-              repeat:<span class="card__repeat-status">no</span>
+              repeat:<span class="card__repeat-status">${repeatStatus}</span>
             </button>
 
             <fieldset class="card__repeat-days" disabled>
@@ -73,6 +86,7 @@ export default () =>
                   id="repeat-mo-2"
                   name="repeat"
                   value="mo"
+                  ${checkedMo}
                 />
                 <label class="card__repeat-day" for="repeat-mo-2"
                   >mo</label
@@ -83,7 +97,7 @@ export default () =>
                   id="repeat-tu-2"
                   name="repeat"
                   value="tu"
-                  checked
+                  ${checkedTu}
                 />
                 <label class="card__repeat-day" for="repeat-tu-2"
                   >tu</label
@@ -94,6 +108,7 @@ export default () =>
                   id="repeat-we-2"
                   name="repeat"
                   value="we"
+                  ${checkedWe}
                 />
                 <label class="card__repeat-day" for="repeat-we-2"
                   >we</label
@@ -104,6 +119,7 @@ export default () =>
                   id="repeat-th-2"
                   name="repeat"
                   value="th"
+                  ${checkedTh}
                 />
                 <label class="card__repeat-day" for="repeat-th-2"
                   >th</label
@@ -114,7 +130,7 @@ export default () =>
                   id="repeat-fr-2"
                   name="repeat"
                   value="fr"
-                  checked
+                  ${checkedFr}
                 />
                 <label class="card__repeat-day" for="repeat-fr-2"
                   >fr</label
@@ -125,6 +141,7 @@ export default () =>
                   name="repeat"
                   value="sa"
                   id="repeat-sa-2"
+                  ${checkedSa}
                 />
                 <label class="card__repeat-day" for="repeat-sa-2"
                   >sa</label
@@ -135,7 +152,7 @@ export default () =>
                   id="repeat-su-2"
                   name="repeat"
                   value="su"
-                  checked
+                  ${checkedSu}
                 />
                 <label class="card__repeat-day" for="repeat-su-2"
                   >su</label
@@ -146,50 +163,22 @@ export default () =>
 
           <div class="card__hashtag">
             <div class="card__hashtag-list">
-              <span class="card__hashtag-inner">
-                <input
-                  type="hidden"
-                  name="hashtag"
-                  value="repeat"
-                  class="card__hashtag-hidden-input"
-                />
-                <button type="button" class="card__hashtag-name">
-                  #repeat
-                </button>
-                <button type="button" class="card__hashtag-delete">
-                  delete
-                </button>
-              </span>
-
-              <span class="card__hashtag-inner">
-                <input
-                  type="hidden"
-                  name="hashtag"
-                  value="repeat"
-                  class="card__hashtag-hidden-input"
-                />
-                <button type="button" class="card__hashtag-name">
-                  #cinema
-                </button>
-                <button type="button" class="card__hashtag-delete">
-                  delete
-                </button>
-              </span>
-
-              <span class="card__hashtag-inner">
-                <input
-                  type="hidden"
-                  name="hashtag"
-                  value="repeat"
-                  class="card__hashtag-hidden-input"
-                />
-                <button type="button" class="card__hashtag-name">
-                  #entertaiment
-                </button>
-                <button type="button" class="card__hashtag-delete">
-                  delete
-                </button>
-              </span>
+              ${[...task.tags].map((it) => `
+                <span class="card__hashtag-inner">
+                  <input
+                    type="hidden"
+                    name="hashtag"
+                    value="repeat"
+                    class="card__hashtag-hidden-input"
+                  />
+                  <button type="button" class="card__hashtag-name">
+                    #${it}
+                  </button>
+                  <button type="button" class="card__hashtag-delete">
+                    delete
+                  </button>
+                </span>
+                `).join(``)}
             </div>
 
             <label>
@@ -203,14 +192,14 @@ export default () =>
           </div>
         </div>
 
-        <label class="card__img-wrap card__img-wrap--empty">
+        <label class="card__img-wrap">
           <input
             type="file"
             class="card__img-input visually-hidden"
             name="img"
           />
           <img
-            src="img/add-photo.svg"
+            src="${task.picture}"
             alt="task picture"
             class="card__img"
           />
@@ -291,3 +280,4 @@ export default () =>
     </div>
   </form>
   </article>`;
+};
