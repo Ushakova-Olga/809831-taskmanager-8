@@ -1,16 +1,54 @@
-export default (task) => {
-  const checkedMo = task.repeatingDays[`mo`] ? `checked` : ``;
-  const checkedTu = task.repeatingDays[`tu`] ? `checked` : ``;
-  const checkedWe = task.repeatingDays[`we`] ? `checked` : ``;
-  const checkedTh = task.repeatingDays[`th`] ? `checked` : ``;
-  const checkedFr = task.repeatingDays[`fr`] ? `checked` : ``;
-  const checkedSa = task.repeatingDays[`sa`] ? `checked` : ``;
-  const checkedSu = task.repeatingDays[`su`] ? `checked` : ``;
-  let repeatStatus = `no`;
+const isRepeating = (days) => {
+  return Object.values(days).some((v) => v);
+};
 
-  if ((checkedMo === `checked`) || (checkedTu === `checked`) || (checkedWe === `checked`) || (checkedTh === `checked`) || (checkedFr === `checked`) || (checkedSa === `checked`) || (checkedSu === `checked`)) {
-    repeatStatus = `yes`;
+const renderRepeatDay = (data) => {
+  const checked = data.value ? `checked` : ``;
+
+  return `<input
+    class="visually-hidden card__repeat-day-input"
+    type="checkbox"
+    id="repeat-${data.day}-${data.id}"
+    name="repeat"
+    value="${data.day}"
+    ${checked}
+    />
+    <label class="card__repeat-day" for="repeat-${data.day}-${data.id}"
+    >${data.day}</label
+    >`;
+};
+
+const renderRepeatDays = (task) => {
+  let result = ``;
+  for (let prop in task.repeatingDays) {
+    if (task.repeatingDays[prop] !== undefined) {
+      result += renderRepeatDay({value: task.repeatingDays[prop], id: 1, day: prop});
+    }
   }
+  return result;
+};
+
+const renderHashtags = (tags) => {
+  return [...tags].map((it) => `
+  <span class="card__hashtag-inner">
+    <input
+      type="hidden"
+      name="hashtag"
+      value="repeat"
+      class="card__hashtag-hidden-input"
+    />
+    <button type="button" class="card__hashtag-name">
+      #${it}
+    </button>
+    <button type="button" class="card__hashtag-delete">
+      delete
+    </button>
+  </span>
+  `).join(``);
+};
+
+export default (task) => {
+  const repeatStatus = isRepeating(task.repeatingDays) ? `yes` : `no`;
 
   return `<article class="card card--${task.color} card--repeat">
   <form class="card__form" method="get">
@@ -43,7 +81,7 @@ export default (task) => {
             placeholder="Start typing your text here..."
             name="text"
           >
-  ${task.title}</textarea
+          ${task.title}</textarea
           >
         </label>
       </div>
@@ -80,105 +118,14 @@ export default (task) => {
 
             <fieldset class="card__repeat-days" disabled>
               <div class="card__repeat-days-inner">
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-mo-2"
-                  name="repeat"
-                  value="mo"
-                  ${checkedMo}
-                />
-                <label class="card__repeat-day" for="repeat-mo-2"
-                  >mo</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-tu-2"
-                  name="repeat"
-                  value="tu"
-                  ${checkedTu}
-                />
-                <label class="card__repeat-day" for="repeat-tu-2"
-                  >tu</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-we-2"
-                  name="repeat"
-                  value="we"
-                  ${checkedWe}
-                />
-                <label class="card__repeat-day" for="repeat-we-2"
-                  >we</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-th-2"
-                  name="repeat"
-                  value="th"
-                  ${checkedTh}
-                />
-                <label class="card__repeat-day" for="repeat-th-2"
-                  >th</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-fr-2"
-                  name="repeat"
-                  value="fr"
-                  ${checkedFr}
-                />
-                <label class="card__repeat-day" for="repeat-fr-2"
-                  >fr</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  name="repeat"
-                  value="sa"
-                  id="repeat-sa-2"
-                  ${checkedSa}
-                />
-                <label class="card__repeat-day" for="repeat-sa-2"
-                  >sa</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-su-2"
-                  name="repeat"
-                  value="su"
-                  ${checkedSu}
-                />
-                <label class="card__repeat-day" for="repeat-su-2"
-                  >su</label
-                >
+                ${renderRepeatDays(task)}
               </div>
             </fieldset>
           </div>
 
           <div class="card__hashtag">
             <div class="card__hashtag-list">
-              ${[...task.tags].map((it) => `
-                <span class="card__hashtag-inner">
-                  <input
-                    type="hidden"
-                    name="hashtag"
-                    value="repeat"
-                    class="card__hashtag-hidden-input"
-                  />
-                  <button type="button" class="card__hashtag-name">
-                    #${it}
-                  </button>
-                  <button type="button" class="card__hashtag-delete">
-                    delete
-                  </button>
-                </span>
-                `).join(``)}
+              ${renderHashtags(task.tags)}
             </div>
 
             <label>
