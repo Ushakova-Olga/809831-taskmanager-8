@@ -20,9 +20,9 @@ const renderRepeatDay = (data) => {
 
 const renderRepeatDays = (task) => {
   let result = ``;
-  for (let prop in task.repeatingDays) {
+  for (const prop in task.repeatingDays) {
     if (task.repeatingDays[prop] !== undefined) {
-      result += renderRepeatDay({value: task.repeatingDays[prop], id: 1, day: prop});
+      result += renderRepeatDay({value: task.repeatingDays[prop], id: task.id, day: prop});
     }
   }
   return result;
@@ -98,7 +98,7 @@ export default (task) => {
                 <input
                   class="card__date"
                   type="text"
-                  placeholder="23 September"
+                  placeholder="${task.dueDate.date}}"
                   name="date"
                 />
               </label>
@@ -106,7 +106,7 @@ export default (task) => {
                 <input
                   class="card__time"
                   type="text"
-                  placeholder="11:15 PM"
+                  placeholder="${task.dueDate.time}"
                   name="time"
                 />
               </label>
@@ -157,62 +157,62 @@ export default (task) => {
           <div class="card__colors-wrap">
             <input
               type="radio"
-              id="color-black-2"
+              id="color-black-${task.id}"
               class="card__color-input card__color-input--black visually-hidden"
               name="color"
               value="black"
             />
             <label
-              for="color-black-2"
+              for="color-black-${task.id}"
               class="card__color card__color--black"
               >black</label
             >
             <input
               type="radio"
-              id="color-yellow-2"
+              id="color-yellow-${task.id}"
               class="card__color-input card__color-input--yellow visually-hidden"
               name="color"
               value="yellow"
             />
             <label
-              for="color-yellow-2"
+              for="color-yellow-${task.id}"
               class="card__color card__color--yellow"
               >yellow</label
             >
             <input
               type="radio"
-              id="color-blue-2"
+              id="color-blue-${task.id}"
               class="card__color-input card__color-input--blue visually-hidden"
               name="color"
               value="blue"
             />
             <label
-              for="color-blue-2"
+              for="color-blue-${task.id}"
               class="card__color card__color--blue"
               >blue</label
             >
             <input
               type="radio"
-              id="color-green-2"
+              id="color-green-${task.id}"
               class="card__color-input card__color-input--green visually-hidden"
               name="color"
               value="green"
             />
             <label
-              for="color-green-2"
+              for="color-green-${task.id}"
               class="card__color card__color--green"
               >green</label
             >
             <input
               type="radio"
-              id="color-pink-2"
+              id="color-pink-${task.id}"
               class="card__color-input card__color-input--pink visually-hidden"
               name="color"
               value="pink"
               checked
             />
             <label
-              for="color-pink-2"
+              for="color-pink-${task.id}"
               class="card__color card__color--pink"
               >pink</label
             >

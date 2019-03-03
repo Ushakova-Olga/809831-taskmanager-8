@@ -19,7 +19,7 @@ const renderTasks = (count) => {
 
   const fragment = document.createDocumentFragment();
   for (let i = 0; i < count; i++) {
-    tasks[i] = makeData();
+    tasks[i] = makeData(i);
     fragment.appendChild(renderTemplate(makeTask(tasks[i])));
   }
   boardTasksElement.innerHTML = ``;
