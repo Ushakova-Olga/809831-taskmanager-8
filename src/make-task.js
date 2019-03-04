@@ -47,6 +47,45 @@ const renderHashtags = (tags) => {
   `).join(``);
 };
 
+const renderColor = (it, color, id) => {
+  let checked = (color === it) ? `checked` : ``;
+
+  return `
+  <input
+    type="radio"
+    id="color-${it}-${id}"
+    class="card__color-input card__color-input--${it} visually-hidden"
+    name="color"
+    value="${it}"
+    ${checked}
+  />
+  <label
+    for="color-${it}-${id}"
+    class="card__color card__color--${it}"
+    >${it}</label
+  >`;
+};
+
+const renderColors = (task) => {
+  const colors = [`black`, `yellow`, `blue`, `green`, `pink`];
+  let result = ``;
+  colors.forEach((it) => {
+    result += renderColor(it, task.color, task.id);
+  });
+
+  return result;
+};
+
+const renderDate = (date) => {
+  const months = [`January`, `February`, `Marth`, `April`, `May`, `June`,
+    `July`, `August`, `September`, `October`, `November`, `December`];
+  return `${date.getDate()} ${months[date.getMonth()]}`;
+};
+
+const renderTime = (date) => {
+  return `${date.getHours()}:${date.getMinutes()}`;
+};
+
 export default (task) => {
   const repeatStatus = isRepeating(task.repeatingDays) ? `yes` : `no`;
 
@@ -98,7 +137,7 @@ export default (task) => {
                 <input
                   class="card__date"
                   type="text"
-                  placeholder="${task.dueDate.date}}"
+                  placeholder="${renderDate(task.dueDate)}"
                   name="date"
                 />
               </label>
@@ -106,7 +145,7 @@ export default (task) => {
                 <input
                   class="card__time"
                   type="text"
-                  placeholder="${task.dueDate.time}"
+                  placeholder="${renderTime(task.dueDate)}"
                   name="time"
                 />
               </label>
@@ -155,67 +194,7 @@ export default (task) => {
         <div class="card__colors-inner">
           <h3 class="card__colors-title">Color</h3>
           <div class="card__colors-wrap">
-            <input
-              type="radio"
-              id="color-black-${task.id}"
-              class="card__color-input card__color-input--black visually-hidden"
-              name="color"
-              value="black"
-            />
-            <label
-              for="color-black-${task.id}"
-              class="card__color card__color--black"
-              >black</label
-            >
-            <input
-              type="radio"
-              id="color-yellow-${task.id}"
-              class="card__color-input card__color-input--yellow visually-hidden"
-              name="color"
-              value="yellow"
-            />
-            <label
-              for="color-yellow-${task.id}"
-              class="card__color card__color--yellow"
-              >yellow</label
-            >
-            <input
-              type="radio"
-              id="color-blue-${task.id}"
-              class="card__color-input card__color-input--blue visually-hidden"
-              name="color"
-              value="blue"
-            />
-            <label
-              for="color-blue-${task.id}"
-              class="card__color card__color--blue"
-              >blue</label
-            >
-            <input
-              type="radio"
-              id="color-green-${task.id}"
-              class="card__color-input card__color-input--green visually-hidden"
-              name="color"
-              value="green"
-            />
-            <label
-              for="color-green-${task.id}"
-              class="card__color card__color--green"
-              >green</label
-            >
-            <input
-              type="radio"
-              id="color-pink-${task.id}"
-              class="card__color-input card__color-input--pink visually-hidden"
-              name="color"
-              value="pink"
-              checked
-            />
-            <label
-              for="color-pink-${task.id}"
-              class="card__color card__color--pink"
-              >pink</label
-            >
+            ${renderColors(task)}
           </div>
         </div>
       </div>
