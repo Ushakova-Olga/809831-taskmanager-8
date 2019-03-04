@@ -1,5 +1,95 @@
-export default () =>
-  `<article class="card card--pink card--repeat">
+const isRepeating = (days) => {
+  return Object.values(days).some((v) => v);
+};
+
+const renderRepeatDay = (data) => {
+  const checked = data.value ? `checked` : ``;
+
+  return `<input
+    class="visually-hidden card__repeat-day-input"
+    type="checkbox"
+    id="repeat-${data.day}-${data.id}"
+    name="repeat"
+    value="${data.day}"
+    ${checked}
+    />
+    <label class="card__repeat-day" for="repeat-${data.day}-${data.id}"
+    >${data.day}</label
+    >`;
+};
+
+const renderRepeatDays = (task) => {
+  let result = ``;
+  for (const prop in task.repeatingDays) {
+    if (task.repeatingDays[prop] !== undefined) {
+      result += renderRepeatDay({value: task.repeatingDays[prop], id: task.id, day: prop});
+    }
+  }
+  return result;
+};
+
+const renderHashtags = (tags) => {
+  return [...tags].map((it) => `
+  <span class="card__hashtag-inner">
+    <input
+      type="hidden"
+      name="hashtag"
+      value="repeat"
+      class="card__hashtag-hidden-input"
+    />
+    <button type="button" class="card__hashtag-name">
+      #${it}
+    </button>
+    <button type="button" class="card__hashtag-delete">
+      delete
+    </button>
+  </span>
+  `).join(``);
+};
+
+const renderColor = (it, color, id) => {
+  let checked = (color === it) ? `checked` : ``;
+
+  return `
+  <input
+    type="radio"
+    id="color-${it}-${id}"
+    class="card__color-input card__color-input--${it} visually-hidden"
+    name="color"
+    value="${it}"
+    ${checked}
+  />
+  <label
+    for="color-${it}-${id}"
+    class="card__color card__color--${it}"
+    >${it}</label
+  >`;
+};
+
+const renderColors = (task) => {
+  const colors = [`black`, `yellow`, `blue`, `green`, `pink`];
+  let result = ``;
+  colors.forEach((it) => {
+    result += renderColor(it, task.color, task.id);
+  });
+
+  return result;
+};
+
+const renderDate = (date) => {
+  const months = [`January`, `February`, `Marth`, `April`, `May`, `June`,
+    `July`, `August`, `September`, `October`, `November`, `December`];
+  return `${date.getDate()} ${months[date.getMonth()]}`;
+};
+
+const renderTime = (date) => {
+  return `${date.getHours()}:${date.getMinutes()}`;
+};
+
+export default (task) => {
+  const repeatStatus = isRepeating(task.repeatingDays) ? `yes` : `no`;
+
+  return `<article class="card card--${task.color} card--repeat">
   <form class="card__form" method="get">
     <div class="card__inner">
       <div class="card__control">
@@ -30,7 +120,7 @@ export default () =>
             placeholder="Start typing your text here..."
             name="text"
           >
-  It is example of repeating task. It marks by wave.</textarea
+          ${task.title}</textarea
           >
         </label>
       </div>
@@ -47,7 +137,7 @@ export default () =>
                 <input
                   class="card__date"
                   type="text"
-                  placeholder="23 September"
+                  placeholder="${renderDate(task.dueDate)}"
                   name="date"
                 />
               </label>
@@ -55,141 +145,26 @@ export default () =>
                 <input
                   class="card__time"
                   type="text"
-                  placeholder="11:15 PM"
+                  placeholder="${renderTime(task.dueDate)}"
                   name="time"
                 />
               </label>
             </fieldset>
 
             <button class="card__repeat-toggle" type="button">
-              repeat:<span class="card__repeat-status">no</span>
+              repeat:<span class="card__repeat-status">${repeatStatus}</span>
             </button>
 
             <fieldset class="card__repeat-days" disabled>
               <div class="card__repeat-days-inner">
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-mo-2"
-                  name="repeat"
-                  value="mo"
-                />
-                <label class="card__repeat-day" for="repeat-mo-2"
-                  >mo</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-tu-2"
-                  name="repeat"
-                  value="tu"
-                  checked
-                />
-                <label class="card__repeat-day" for="repeat-tu-2"
-                  >tu</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-we-2"
-                  name="repeat"
-                  value="we"
-                />
-                <label class="card__repeat-day" for="repeat-we-2"
-                  >we</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-th-2"
-                  name="repeat"
-                  value="th"
-                />
-                <label class="card__repeat-day" for="repeat-th-2"
-                  >th</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-fr-2"
-                  name="repeat"
-                  value="fr"
-                  checked
-                />
-                <label class="card__repeat-day" for="repeat-fr-2"
-                  >fr</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  name="repeat"
-                  value="sa"
-                  id="repeat-sa-2"
-                />
-                <label class="card__repeat-day" for="repeat-sa-2"
-                  >sa</label
-                >
-                <input
-                  class="visually-hidden card__repeat-day-input"
-                  type="checkbox"
-                  id="repeat-su-2"
-                  name="repeat"
-                  value="su"
-                  checked
-                />
-                <label class="card__repeat-day" for="repeat-su-2"
-                  >su</label
-                >
+                ${renderRepeatDays(task)}
               </div>
             </fieldset>
           </div>
 
           <div class="card__hashtag">
             <div class="card__hashtag-list">
-              <span class="card__hashtag-inner">
-                <input
-                  type="hidden"
-                  name="hashtag"
-                  value="repeat"
-                  class="card__hashtag-hidden-input"
-                />
-                <button type="button" class="card__hashtag-name">
-                  #repeat
-                </button>
-                <button type="button" class="card__hashtag-delete">
-                  delete
-                </button>
-              </span>
-
-              <span class="card__hashtag-inner">
-                <input
-                  type="hidden"
-                  name="hashtag"
-                  value="repeat"
-                  class="card__hashtag-hidden-input"
-                />
-                <button type="button" class="card__hashtag-name">
-                  #cinema
-                </button>
-                <button type="button" class="card__hashtag-delete">
-                  delete
-                </button>
-              </span>
-
-              <span class="card__hashtag-inner">
-                <input
-                  type="hidden"
-                  name="hashtag"
-                  value="repeat"
-                  class="card__hashtag-hidden-input"
-                />
-                <button type="button" class="card__hashtag-name">
-                  #entertaiment
-                </button>
-                <button type="button" class="card__hashtag-delete">
-                  delete
-                </button>
-              </span>
+              ${renderHashtags(task.tags)}
             </div>
 
             <label>
@@ -203,14 +178,14 @@ export default () =>
           </div>
         </div>
 
-        <label class="card__img-wrap card__img-wrap--empty">
+        <label class="card__img-wrap">
           <input
             type="file"
             class="card__img-input visually-hidden"
             name="img"
           />
           <img
-            src="img/add-photo.svg"
+            src="${task.picture}"
             alt="task picture"
             class="card__img"
           />
@@ -219,67 +194,7 @@ export default () =>
         <div class="card__colors-inner">
           <h3 class="card__colors-title">Color</h3>
           <div class="card__colors-wrap">
-            <input
-              type="radio"
-              id="color-black-2"
-              class="card__color-input card__color-input--black visually-hidden"
-              name="color"
-              value="black"
-            />
-            <label
-              for="color-black-2"
-              class="card__color card__color--black"
-              >black</label
-            >
-            <input
-              type="radio"
-              id="color-yellow-2"
-              class="card__color-input card__color-input--yellow visually-hidden"
-              name="color"
-              value="yellow"
-            />
-            <label
-              for="color-yellow-2"
-              class="card__color card__color--yellow"
-              >yellow</label
-            >
-            <input
-              type="radio"
-              id="color-blue-2"
-              class="card__color-input card__color-input--blue visually-hidden"
-              name="color"
-              value="blue"
-            />
-            <label
-              for="color-blue-2"
-              class="card__color card__color--blue"
-              >blue</label
-            >
-            <input
-              type="radio"
-              id="color-green-2"
-              class="card__color-input card__color-input--green visually-hidden"
-              name="color"
-              value="green"
-            />
-            <label
-              for="color-green-2"
-              class="card__color card__color--green"
-              >green</label
-            >
-            <input
-              type="radio"
-              id="color-pink-2"
-              class="card__color-input card__color-input--pink visually-hidden"
-              name="color"
-              value="pink"
-              checked
-            />
-            <label
-              for="color-pink-2"
-              class="card__color card__color--pink"
-              >pink</label
-            >
+            ${renderColors(task)}
           </div>
         </div>
       </div>
@@ -291,3 +206,4 @@ export default () =>
     </div>
   </form>
   </article>`;
+};
