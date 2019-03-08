@@ -1,10 +1,6 @@
-const createElement = (template) => {
-  const newElement = document.createElement(`div`);
-  newElement.innerHTML = template;
-  return newElement.firstChild;
-};
+import {renderColors, renderDate, renderTime, repeatStatus, repeatClass, renderHashtags, dateStatus, dateDisabled, renderRepeatDays, createElement} from './common.js';
 
-class TaskEdit {
+export default class TaskEdit {
   constructor(data) {
     this._id = data.id;
     this._title = data.title;
@@ -27,98 +23,6 @@ class TaskEdit {
     }
   }
 
-  _isRepeated() {
-    return Object.values(this._repeatingDays).some((it) => it === true);
-  }
-
-  renderColors() {
-    const colors = [`black`, `yellow`, `blue`, `green`, `pink`];
-    let result = ``;
-    colors.forEach((it) => {
-      result += this.renderColor(it, this._color, this._id);
-    });
-
-    return result;
-  }
-
-  renderDate() {
-    const months = [`January`, `February`, `Marth`, `April`, `May`, `June`,
-      `July`, `August`, `September`, `October`, `November`, `December`];
-    return `${this._dueDate.getDate()} ${months[this._dueDate.getMonth()]}`;
-  }
-
-  renderTime() {
-    return `${this._dueDate.getHours()}:${this._dueDate.getMinutes()}`;
-  }
-
-  repeatStatus() {
-    return this._isRepeated(this._repeatingDays) ? `yes` : `no`;
-  }
-
-  renderRepeatDay(data) {
-    const checked = data.value ? `checked` : ``;
-
-    return `<input
-      class="visually-hidden card__repeat-day-input"
-      type="checkbox"
-      id="repeat-${data._day}-${data._id}"
-      name="repeat"
-      value="${data._day}"
-      ${checked}
-      />
-      <label class="card__repeat-day" for="repeat-${data._day}-${data._id}"
-      >${data._day}</label
-      >`;
-  }
-
-  renderRepeatDays() {
-    let result = ``;
-    for (const prop in this.repeatingDays) {
-      if (this.repeatingDays[prop] !== undefined) {
-        result += this.renderRepeatDay({value: this.repeatingDays[prop], id: this.id, day: prop});
-      }
-    }
-    return result;
-  }
-
-  renderHashtags() {
-    return [...this._tags].map((it) => `
-    <span class="card__hashtag-inner">
-      <input
-        type="hidden"
-        name="hashtag"
-        value="repeat"
-        class="card__hashtag-hidden-input"
-      />
-      <button type="button" class="card__hashtag-name">
-        #${it}
-      </button>
-      <button type="button" class="card__hashtag-delete">
-        delete
-      </button>
-    </span>
-    `).join(``);
-  }
-
-  renderColor(it, color, id) {
-    let checked = (color === it) ? `checked` : ``;
-
-    return `
-    <input
-      type="radio"
-      id="color-${it}-${id}"
-      class="card__color-input card__color-input--${it} visually-hidden"
-      name="color"
-      value="${it}"
-      ${checked}
-    />
-    <label
-      for="color-${it}-${id}"
-      class="card__color card__color--${it}"
-      >${it}</label
-    >`;
-  }
-
   set onSubmit(fn) {
     this._onSubmit = fn;
   }
@@ -128,7 +32,7 @@ class TaskEdit {
   }
 
   get template() {
-    return `<article class="card card--edit card--${this._color} card--repeat">
+    return `<article class="card card--edit card--${this._color} ${repeatClass(this)}">
     <form class="card__form" method="get">
       <div class="card__inner">
         <div class="card__control">
@@ -168,15 +72,15 @@ class TaskEdit {
           <div class="card__details">
             <div class="card__dates">
               <button class="card__date-deadline-toggle" type="button">
-                date: <span class="card__date-status">no</span>
+                date: <span class="card__date-status">${dateStatus(this)}</span>
               </button>
 
-              <fieldset class="card__date-deadline" disabled>
+              <fieldset class="card__date-deadline" ${dateDisabled(this)}>
                 <label class="card__input-deadline-wrap">
                   <input
                     class="card__date"
                     type="text"
-                    placeholder="${this.renderDate()}"
+                    placeholder="${renderDate(this)}"
                     name="date"
                   />
                 </label>
@@ -184,26 +88,26 @@ class TaskEdit {
                   <input
                     class="card__time"
                     type="text"
-                    placeholder="${this.renderTime()}"
+                    placeholder="${renderTime(this)}"
                     name="time"
                   />
                 </label>
               </fieldset>
 
               <button class="card__repeat-toggle" type="button">
-                repeat:<span class="card__repeat-status">${this.repeatStatus()}</span>
+                repeat:<span class="card__repeat-status">${repeatStatus(this)}</span>
               </button>
 
               <fieldset class="card__repeat-days" disabled>
                 <div class="card__repeat-days-inner">
-                  ${this.renderRepeatDays()}
+                  ${renderRepeatDays(this)}
                 </div>
               </fieldset>
             </div>
 
             <div class="card__hashtag">
               <div class="card__hashtag-list">
-                ${this.renderHashtags()}
+                ${renderHashtags(this)}
               </div>
 
               <label>
@@ -233,7 +137,7 @@ class TaskEdit {
           <div class="card__colors-inner">
             <h3 class="card__colors-title">Color</h3>
             <div class="card__colors-wrap">
-              ${this.renderColors()}
+              ${renderColors(this)}
             </div>
           </div>
         </div>
@@ -267,7 +171,3 @@ class TaskEdit {
     // Удаление обработчиков
   }
 }
-
-export default (task) => {
-  return new TaskEdit(task);
-};

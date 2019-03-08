@@ -1,7 +1,7 @@
 import makeFilter from './make-filter.js';
 import makeData from './data.js';
-import task from './task.js';
-import taskEdit from './task-edit.js';
+import Task from './task.js';
+import TaskEdit from './task-edit.js';
 
 const mainFilterElement = document.querySelector(`.main__filter`);
 const boardTasksElement = document.querySelector(`.board__tasks`);
@@ -19,8 +19,8 @@ const renderTasks = (count) => {
   boardTasksElement.innerHTML = ``;
 
   for (let i = 0; i < count; i++) {
-    const taskComponent = task(makeData(i));
-    const editTaskComponent = taskEdit(makeData(i));
+    const taskComponent = new Task(makeData(i));
+    const editTaskComponent = new TaskEdit(makeData(i));
     boardTasksElement.appendChild(taskComponent.render());
     taskComponent.onEdit = () => {
       editTaskComponent.render();
