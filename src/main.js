@@ -1,6 +1,7 @@
 import makeFilter from './make-filter.js';
-import makeTask from './make-task.js';
 import makeData from './data.js';
+import Task from './task.js';
+import TaskEdit from './task-edit.js';
 
 const mainFilterElement = document.querySelector(`.main__filter`);
 const boardTasksElement = document.querySelector(`.board__tasks`);
@@ -15,15 +16,24 @@ const renderTemplate = (template = ``) => {
 };
 
 const renderTasks = (count) => {
-  let tasks = new Array(count);
-
-  const fragment = document.createDocumentFragment();
-  for (let i = 0; i < count; i++) {
-    tasks[i] = makeData(i);
-    fragment.appendChild(renderTemplate(makeTask(tasks[i])));
-  }
   boardTasksElement.innerHTML = ``;
-  boardTasksElement.appendChild(fragment);
+
+  for (let i = 0; i < count; i++) {
+    const taskComponent = new Task(makeData(i));
+    const editTaskComponent = new TaskEdit(makeData(i));
+    boardTasksElement.appendChild(taskComponent.render());
+    taskComponent.onEdit = () => {
+      editTaskComponent.render();
+      boardTasksElement.replaceChild(editTaskComponent.element, taskComponent.element);
+      taskComponent.unrender();
+    };
+
+    editTaskComponent.onSubmit = () => {
+      taskComponent.render();
+      boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
+      editTaskComponent.unrender();
+    };
+  }
 };
 
 const filtersData = [
