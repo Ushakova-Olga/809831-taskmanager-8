@@ -1,7 +1,9 @@
-import {renderColors, renderDate, renderTime, repeatStatus, repeatClass, renderHashtags, dateStatus, dateDisabled, renderRepeatDays, createElement} from './common.js';
+import {colors, months} from './common.js';
+import Component from './component.js';
 
-export default class TaskEdit {
+export default class TaskEdit extends Component {
   constructor(data) {
+    super();
     this._id = data.id;
     this._title = data.title;
     this._dueDate = data.dueDate;
@@ -12,7 +14,7 @@ export default class TaskEdit {
     this._isFavorite = data.isFavorite;
     this._isDone = data.isDone;
 
-    this._element = null;
+    this._onSubmitButtonClick = this._onSubmitButtonClick.bind(this);
     this._onSubmit = null;
   }
 
@@ -23,16 +25,114 @@ export default class TaskEdit {
     }
   }
 
+  _isRepeated() {
+    return Object.values(this._repeatingDays).some((it) => it === true);
+  }
+
   set onSubmit(fn) {
     this._onSubmit = fn;
   }
 
-  get element() {
-    return this._element;
+  renderColor(it) {
+    let checked = (this._color === it) ? `checked` : ``;
+
+    return `
+      <input
+        type="radio"
+        id="color-${it}-${this._id}"
+        class="card__color-input card__color-input--${it} visually-hidden"
+        name="color"
+        value="${it}"
+        ${checked}
+      />
+      <label
+        for="color-${it}-${this._id}"
+        class="card__color card__color--${it}"
+        >${it}</label
+      >`;
+  }
+
+  _renderColors() {
+    let result = ``;
+    colors.forEach((it) => {
+      result += this.renderColor(it, this._color, this._id);
+    });
+
+    return result;
+  }
+
+  _renderDate() {
+    return `${this._dueDate.getDate()} ${months[this._dueDate.getMonth()]}`;
+  }
+
+  _renderTime() {
+    return `${this._dueDate.getHours()}:${this._dueDate.getMinutes()}`;
+  }
+
+
+  _repeatStatus() {
+    return this._isRepeated() ? `yes` : `no`;
+  }
+
+  _repeatClass() {
+    return this._isRepeated() ? `card--repeat` : ``;
+  }
+
+  _dateStatus() {
+    return this._dueDate ? `yes` : `no`;
+  }
+
+  _dateDisabled() {
+    return this._dueDate ? `` : `disabled`;
+  }
+
+  _renderRepeatDay(data) {
+    const checked = data.value ? `checked` : ``;
+
+    return `<input
+      class="visually-hidden card__repeat-day-input"
+      type="checkbox"
+      id="repeat-${data._day}-${data._id}"
+      name="repeat"
+      value="${data._day}"
+      ${checked}
+      />
+      <label class="card__repeat-day" for="repeat-${data._day}-${data._id}"
+      >${data._day}</label
+      >`;
+  }
+
+  _renderRepeatDays() {
+    let result = ``;
+    for (const prop in this._repeatingDays) {
+      if (this._repeatingDays[prop] !== undefined) {
+        result += this._renderRepeatDay({value: this._repeatingDays[prop], id: this._id, day: prop});
+      }
+    }
+    return result;
+  }
+
+  _renderHashtags() {
+    return [...this._tags].map((it) => `
+    <span class="card__hashtag-inner">
+      <input
+        type="hidden"
+        name="hashtag"
+        value="repeat"
+        class="card__hashtag-hidden-input"
+      />
+      <button type="button" class="card__hashtag-name">
+        #${it}
+      </button>
+      <button type="button" class="card__hashtag-delete">
+        delete
+      </button>
+    </span>
+    `).join(``);
   }
 
   get template() {
-    return `<article class="card card--edit card--${this._color} ${repeatClass(this)}">
+    return `<article class="card card--edit card--${this._color} ${this._repeatClass()}">
     <form class="card__form" method="get">
       <div class="card__inner">
         <div class="card__control">
@@ -72,15 +172,15 @@ export default class TaskEdit {
           <div class="card__details">
             <div class="card__dates">
               <button class="card__date-deadline-toggle" type="button">
-                date: <span class="card__date-status">${dateStatus(this)}</span>
+                date: <span class="card__date-status">${this._dateStatus()}</span>
               </button>
 
-              <fieldset class="card__date-deadline" ${dateDisabled(this)}>
+              <fieldset class="card__date-deadline" ${this._dateDisabled()}>
                 <label class="card__input-deadline-wrap">
                   <input
                     class="card__date"
                     type="text"
-                    placeholder="${renderDate(this)}"
+                    placeholder="${this._renderDate()}"
                     name="date"
                   />
                 </label>
@@ -88,26 +188,26 @@ export default class TaskEdit {
                   <input
                     class="card__time"
                     type="text"
-                    placeholder="${renderTime(this)}"
+                    placeholder="${this._renderTime()}"
                     name="time"
                   />
                 </label>
               </fieldset>
 
               <button class="card__repeat-toggle" type="button">
-                repeat:<span class="card__repeat-status">${repeatStatus(this)}</span>
+                repeat:<span class="card__repeat-status">${this._repeatStatus()}</span>
               </button>
 
               <fieldset class="card__repeat-days" disabled>
                 <div class="card__repeat-days-inner">
-                  ${renderRepeatDays(this)}
+                  ${this._renderRepeatDays()}
                 </div>
               </fieldset>
             </div>
 
             <div class="card__hashtag">
               <div class="card__hashtag-list">
-                ${renderHashtags(this)}
+                ${this._renderHashtags()}
               </div>
 
               <label>
@@ -137,7 +237,7 @@ export default class TaskEdit {
           <div class="card__colors-inner">
             <h3 class="card__colors-title">Color</h3>
             <div class="card__colors-wrap">
-              ${renderColors(this)}
+              ${this._renderColors()}
             </div>
           </div>
         </div>
@@ -151,23 +251,13 @@ export default class TaskEdit {
     </article>`;
   }
 
-  render() {
-    this._element = createElement(this.template);
-    this.bind();
-    return this._element;
-  }
-
-  unrender() {
-    this.unbind();
-    this._element = null;
-  }
-
   bind() {
     this._element.querySelector(`.card__form`)
-      .addEventListener(`submit`, this._onSubmitButtonClick.bind(this));
+      .addEventListener(`submit`, this._onSubmitButtonClick);
   }
 
   unbind() {
-    // Удаление обработчиков
+    this._element.querySelector(`.card__form`)
+      .removeEventListener(`submit`, this._onSubmitButtonClick);
   }
 }

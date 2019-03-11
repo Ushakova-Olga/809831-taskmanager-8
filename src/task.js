@@ -1,7 +1,8 @@
-import {repeatClass, renderHashtags, createElement} from './common.js';
+import Component from './component.js';
 
-export default class Task {
+export default class Task extends Component {
   constructor(data) {
+    super();
     this._id = data.id;
     this._title = data.title;
     this._dueDate = data.dueDate;
@@ -12,12 +13,9 @@ export default class Task {
     this._isFavorite = data.isFavorite;
     this._isDone = data.isDone;
 
-    this._element = null;
-    this._state = {
-      // Состояние компонента
-    };
-
     this._onEdit = null;
+
+    this._onEditButtonClick = this._onEditButtonClick.bind(this);
   }
 
   _onEditButtonClick() {
@@ -26,16 +24,39 @@ export default class Task {
     }
   }
 
-  get element() {
-    return this._element;
+  _isRepeated() {
+    return Object.values(this._repeatingDays).some((it) => it === true);
   }
 
   set onEdit(fn) {
     this._onEdit = fn;
   }
 
+  _repeatClass() {
+    return this._isRepeated() ? `card--repeat` : ``;
+  }
+
+  _renderHashtags() {
+    return [...this._tags].map((it) => `
+    <span class="card__hashtag-inner">
+      <input
+        type="hidden"
+        name="hashtag"
+        value="repeat"
+        class="card__hashtag-hidden-input"
+      />
+      <button type="button" class="card__hashtag-name">
+        #${it}
+      </button>
+      <button type="button" class="card__hashtag-delete">
+        delete
+      </button>
+    </span>
+    `).join(``);
+  }
+
   get template() {
-    return `<article class="card card--${this._color} ${repeatClass(this)}">
+    return `<article class="card card--${this._color} ${this._repeatClass()}">
     <form class="card__form" method="get">
       <div class="card__inner">
         <div class="card__control">
@@ -76,7 +97,7 @@ export default class Task {
           <div class="card__details">
             <div class="card__hashtag">
               <div class="card__hashtag-list">
-                ${renderHashtags(this)}
+                ${this._renderHashtags()}
               </div>
             </div>
           </div>
@@ -101,23 +122,12 @@ export default class Task {
   }
 
   bind() {
-
     this._element.querySelector(`.card__btn--edit`)
-        .addEventListener(`click`, this._onEditButtonClick.bind(this));
-  }
-
-  render() {
-    this._element = createElement(this.template);
-    this.bind();
-    return this._element;
+        .addEventListener(`click`, this._onEditButtonClick);
   }
 
   unbind() {
-    // Удаление обработчиков
-  }
-
-  unrender() {
-    this.unbind();
-    this._element = null;
+    this._element.querySelector(`.card__btn--edit`)
+        .removeEventListener(`click`, this._onEditButtonClick);
   }
 }
