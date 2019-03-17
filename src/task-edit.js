@@ -1,7 +1,7 @@
 import {colors} from './common.js';
 import Component from './component.js';
-const flatpickr = require(`flatpickr`);
-const moment = require(`moment`);
+import flatpickr from 'flatpickr';
+import moment from 'moment';
 
 export default class TaskEdit extends Component {
   constructor(data) {
@@ -53,7 +53,7 @@ export default class TaskEdit extends Component {
       }
     }
 
-    entry.dueDate = moment(entry.dueDate, `DD MMMM YYYY hh:mm`).format(`DD.MM.YYYY h:mm`);
+    entry.dueDate = Date.parse(moment(entry.dueDate, `DD MMMM YYYY hh:mm`).toDate());
     return entry;
   }
 
@@ -123,11 +123,11 @@ export default class TaskEdit extends Component {
   }
 
   _renderDate() {
-    return `${moment(this._dueDate, `DD.MM.YYYY hh:mm`).format(`D MMMM`)}`;
+    return `${moment(this._dueDate).format(`D MMMM`)}`;
   }
 
   _renderTime() {
-    return `${moment(this._dueDate, `DD.MM.YYYY h:mm`).format(`h:mm`)}`;
+    return `${moment(this._dueDate).format(`h:mm`)}`;
   }
 
 
@@ -326,8 +326,8 @@ export default class TaskEdit extends Component {
         .addEventListener(`click`, this._onChangeRepeated);
 
     if (this._state.isDate) {
-      flatpickr(`.card__date`, {altInput: true, altFormat: `j F`, dateFormat: `j F Y`});
-      flatpickr(`.card__time`, {enableTime: true, noCalendar: true, altInput: true, altFormat: `h:i K`, dateFormat: `h:i K`});
+      flatpickr(this.element.querySelector(`.card__date`), {altInput: true, altFormat: `j F`, dateFormat: `j F Y`});
+      flatpickr(this.element.querySelector(`.card__time`), {enableTime: true, noCalendar: true, altInput: true, altFormat: `h:i K`, dateFormat: `h:i K`});
     }
   }
 
@@ -343,12 +343,11 @@ export default class TaskEdit extends Component {
   }
 
   update(data) {
-
     this._title = data.title;
     this._tags = data.tags;
     this._color = data.color;
     this._repeatingDays = data.repeatingDays;
-    this._dueDate = data.dueDate;
+    this._dueDate = data.dueDate ? data.dueDate : this._dueDate;
   }
 
   static createMapper(target) {
@@ -367,7 +366,7 @@ export default class TaskEdit extends Component {
         target.dueDate = value;
       },
       time: (value) => {
-        target.dueDate += ` ` + value;
+        target.dueDate = target.dueDate ? target.dueDate + ` ` + value : ``;
       },
     };
   }

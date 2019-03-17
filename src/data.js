@@ -1,5 +1,4 @@
 // data.js
-const moment = require(`moment`);
 const titles = [`Изучить теорию`, `Сделать домашку`, `Пройти интенсив на соточку`];
 const tags = [`homework`, `theory`, `practice`, `intensive`, `keks`];
 const colors = [`black`, `yellow`, `blue`, `green`, `pink`];
@@ -24,7 +23,7 @@ const getRepeatingDays = () => ({
 });
 
 const getDate = () => {
-  return moment(Date.now() + 1 + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000).format(`DD.MM.YYYY h:mm`);
+  return (Date.now() + 1 + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000);
 };
 
 const getRandomBoolean = () => [true, false][Math.floor(Math.random() * 2)];
