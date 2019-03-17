@@ -19,8 +19,9 @@ const renderTasks = (count) => {
   boardTasksElement.innerHTML = ``;
 
   for (let i = 0; i < count; i++) {
-    const taskComponent = new Task(makeData(i));
-    const editTaskComponent = new TaskEdit(makeData(i));
+    const task = makeData(i);
+    const taskComponent = new Task(task);
+    const editTaskComponent = new TaskEdit(task);
     boardTasksElement.appendChild(taskComponent.render());
     taskComponent.onEdit = () => {
       editTaskComponent.render();
@@ -28,7 +29,14 @@ const renderTasks = (count) => {
       taskComponent.unrender();
     };
 
-    editTaskComponent.onSubmit = () => {
+    editTaskComponent.onSubmit = (newObject) => {
+      task.title = newObject.title;
+      task.tags = newObject.tags;
+      task.color = newObject.color;
+      task.repeatingDays = newObject.repeatingDays;
+      task.dueDate = newObject.dueDate;
+
+      taskComponent.update(task);
       taskComponent.render();
       boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
       editTaskComponent.unrender();

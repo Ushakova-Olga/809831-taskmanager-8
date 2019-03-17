@@ -23,9 +23,7 @@ const getRepeatingDays = () => ({
 });
 
 const getDate = () => {
-  let myDate = new Date();
-  myDate.setDate(myDate.getDate() + Math.floor(Math.random() * 14));
-  return myDate;
+  return (Date.now() + 1 + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000);
 };
 
 const getRandomBoolean = () => [true, false][Math.floor(Math.random() * 2)];
