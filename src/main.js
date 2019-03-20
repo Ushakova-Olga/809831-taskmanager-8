@@ -1,31 +1,50 @@
-import makeFilter from './make-filter.js';
 import makeData from './data.js';
 import Task from './task.js';
 import TaskEdit from './task-edit.js';
+import Filter from './filter.js';
+import moment from 'moment';
+import flatpickr from 'flatpickr';
+import {createTagChart, createColorChart} from './statistik.js';
 
 const mainFilterElement = document.querySelector(`.main__filter`);
 const boardTasksElement = document.querySelector(`.board__tasks`);
-const maxTasks = 30;
+const controlStatisticElement = document.querySelector(`#control__statistic`);
+const containerStatistic = document.querySelector(`.statistic`);
+const containerTasks = document.querySelector(`.board`);
+const statisticInput = containerStatistic.querySelector(`.statistic__period-input`);
+const tagsCtxWrap = document.querySelector(`.statistic__tags-wrap`);
+const colorsCtxWrap = document.querySelector(`.statistic__colors-wrap`);
+const tagsCtx = document.querySelector(`.statistic__tags`);
+const colorsCtx = document.querySelector(`.statistic__colors`);
 
-const getRandom = (count) => Math.floor(count * Math.random());
-
-const renderTemplate = (template = ``) => {
-  const templateElement = document.createElement(`template`);
-  templateElement.innerHTML = template;
-  return templateElement.content;
+const deleteTask = (tasks, i) => {
+  tasks.splice(i, 1);
+  return tasks;
 };
 
-const renderTasks = (count) => {
+const createTasks = (count) => {
+  const tasks = [];
+  for (let i = 0; i < count; i++) {
+    tasks.push(makeData(i));
+  }
+  return tasks;
+};
+
+const renderTasks = (tasks) => {
   boardTasksElement.innerHTML = ``;
 
-  for (let i = 0; i < count; i++) {
-    const task = makeData(i);
+  for (let i = 0; i < tasks.length; i++) {
+    const task = tasks[i];
     const taskComponent = new Task(task);
     const editTaskComponent = new TaskEdit(task);
-    boardTasksElement.appendChild(taskComponent.render());
+    taskComponent.render();
+    boardTasksElement.appendChild(taskComponent.element);
+
     taskComponent.onEdit = () => {
       editTaskComponent.render();
-      boardTasksElement.replaceChild(editTaskComponent.element, taskComponent.element);
+      boardTasksElement.replaceChild(
+          editTaskComponent.element,
+          taskComponent.element);
       taskComponent.unrender();
     };
 
@@ -41,41 +60,75 @@ const renderTasks = (count) => {
       boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
       editTaskComponent.unrender();
     };
+
+    editTaskComponent.onDelete = () => {
+      deleteTask(tasks, i);
+      editTaskComponent.unrender();
+    };
   }
 };
 
 const filtersData = [
-  {name: `All`, count: 15},
-  {name: `Overdue`, count: 2},
-  {name: `Today`, count: 3},
-  {name: `Favorites`, count: 1},
-  {name: `Repeating`, count: 5},
-  {name: `Tags`, count: 1},
-  {name: `Archive`, count: 3},
+  {id: 1, name: `All`, count: 5, checked: true},
+  {id: 2, name: `Overdue`, count: 2, checked: false},
+  {id: 3, name: `Today`, count: 3, checked: false},
+  {id: 4, name: `Favorites`, count: 1, checked: false},
+  {id: 5, name: `Repeating`, count: 5, checked: false},
+  {id: 6, name: `Tags`, count: 1, checked: false},
+  {id: 7, name: `Archive`, count: 3, checked: false},
 ];
 
-const createCountfiltersData = (data) => {
+const renderFilters = (data, tasks) => {
+  mainFilterElement.innerHTML = ``;
+
   data.forEach((filter) => {
-    filter.count = getRandom(maxTasks);
+    const filterComponent = new Filter(filter);
+    mainFilterElement.appendChild(filterComponent.render());
+
+    filterComponent.onFilter = () => {
+      containerStatistic.classList.add(`visually-hidden`);
+      containerTasks.classList.remove(`visually-hidden`);
+      switch (filterComponent._name) {
+        case `All`:
+          return renderTasks(tasks);
+
+        case `Overdue`:
+          return renderTasks(tasks.filter((it) => it.dueDate < Date.now()));
+
+        case `Today`:
+          return renderTasks(tasks.filter(() => true));
+
+        case `Repeating`:
+          return renderTasks(tasks.filter((it) => [...Object.entries(it.repeatingDays)]
+              .some((rec) => rec[1])));
+      }
+      return renderTasks(tasks);
+    };
   });
 };
 
-createCountfiltersData(filtersData);
-
-const renderFilter = (data) => {
-  const id = data.name.toLocaleLowerCase();
-
-  const fragment = renderTemplate(makeFilter(id, data.name, data.count));
-  const input = fragment.querySelector(`input`);
-  input.addEventListener(`change`, () => renderTasks(data.count));
-  return fragment;
+const onClickStatistic = function () {
+  containerStatistic.classList.remove(`visually-hidden`);
+  containerTasks.classList.add(`visually-hidden`);
 };
 
-const renderFilters = (data) => {
-  const fragment = document.createDocumentFragment();
-  data.forEach((filter) => fragment.appendChild(renderFilter(filter)));
-  mainFilterElement.innerHTML = ``;
-  mainFilterElement.appendChild(fragment);
+const onChangeDate = function () {
+  createTagChart(tagsCtx);
+  createColorChart(colorsCtx);
 };
 
-renderFilters(filtersData);
+let tasks = [];
+tasks = createTasks(25);
+renderFilters(filtersData, tasks);
+controlStatisticElement.addEventListener(`click`, onClickStatistic);
+
+statisticInput.placeholder = moment(moment().startOf(`week`)).format(`D MMM`) + ` - ` + moment(moment().endOf(`week`)).format(`D MMM`);
+
+flatpickr(statisticInput, {altInput: true, altFormat: `j F`, mode: `range`, dateFormat: `j F Y`});
+statisticInput.addEventListener(`change`, onChangeDate);
+
+
+tagsCtxWrap.classList.remove(`visually-hidden`);
+colorsCtxWrap.classList.remove(`visually-hidden`);
+createTagChart(tagsCtx);
+createColorChart(colorsCtx);

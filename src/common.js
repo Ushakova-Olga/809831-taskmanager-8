@@ -8,3 +8,9 @@ export function createElement(template) {
   newElement.innerHTML = template;
   return newElement.firstChild;
 }
+
+export function createElement2(template) {
+  const templateElement = document.createElement(`template`);
+  templateElement.innerHTML = template;
+  return templateElement.content;
+}
