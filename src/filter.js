@@ -1,4 +1,4 @@
-import {createElement2} from './common.js';
+import {createElements} from './common.js';
 import Component from './component.js';
 
 export default class Filter extends Component {
@@ -39,19 +39,18 @@ export default class Filter extends Component {
       </label>
     `;
   }
+
   render() {
-    this._element = createElement2(this.template);
+    this._element = createElements(this.template);
     this.bind();
     return this._element;
   }
 
   bind() {
-    this._element.querySelector(`input`).
-      addEventListener(`change`, this._onFilter);
+    this._element[0].addEventListener(`change`, this._onFilter);
   }
 
   unbind() {
-    this._element.querySelector(`input`).
-      removeEventListener(`change`, this._onFilter);
+    this._element[0].removeEventListener(`change`, this._onFilter);
   }
 }

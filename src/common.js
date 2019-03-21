@@ -9,8 +9,9 @@ export function createElement(template) {
   return newElement.firstChild;
 }
 
-export function createElement2(template) {
-  const templateElement = document.createElement(`template`);
-  templateElement.innerHTML = template;
-  return templateElement.content;
+// Возвращает массив из 2-х элементов
+export function createElements(template) {
+  const newElement = document.createElement(`div`);
+  newElement.innerHTML = template;
+  return [newElement.firstElementChild, newElement.lastElementChild];
 }

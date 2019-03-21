@@ -83,7 +83,8 @@ const renderFilters = (data, tasks) => {
 
   data.forEach((filter) => {
     const filterComponent = new Filter(filter);
-    mainFilterElement.appendChild(filterComponent.render());
+    mainFilterElement.appendChild(filterComponent.render()[0]);
+    mainFilterElement.appendChild(filterComponent.render()[1]);
 
     filterComponent.onFilter = () => {
       containerStatistic.classList.add(`visually-hidden`);
@@ -108,11 +109,15 @@ const renderFilters = (data, tasks) => {
 };
 
 const onClickStatistic = function () {
+  tagsCtxWrap.classList.remove(`visually-hidden`);
+  colorsCtxWrap.classList.remove(`visually-hidden`);
   containerStatistic.classList.remove(`visually-hidden`);
   containerTasks.classList.add(`visually-hidden`);
+  createTagChart(tagsCtx);
+  createColorChart(colorsCtx);
 };
 
-const onChangeDate = function () {
+const onStaticticInputChange = function () {
   createTagChart(tagsCtx);
   createColorChart(colorsCtx);
 };
@@ -125,10 +130,4 @@ controlStatisticElement.addEventListener(`click`, onClickStatistic);
 statisticInput.placeholder = moment(moment().startOf(`week`)).format(`D MMM`) + ` - ` + moment(moment().endOf(`week`)).format(`D MMM`);
 
 flatpickr(statisticInput, {altInput: true, altFormat: `j F`, mode: `range`, dateFormat: `j F Y`});
-statisticInput.addEventListener(`change`, onChangeDate);
-
-
-tagsCtxWrap.classList.remove(`visually-hidden`);
-colorsCtxWrap.classList.remove(`visually-hidden`);
-createTagChart(tagsCtx);
-createColorChart(colorsCtx);
+statisticInput.addEventListener(`change`, onStaticticInputChange);
