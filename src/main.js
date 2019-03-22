@@ -83,8 +83,7 @@ const renderFilters = (data, tasks) => {
 
   data.forEach((filter) => {
     const filterComponent = new Filter(filter);
-    mainFilterElement.appendChild(filterComponent.render()[0]);
-    mainFilterElement.appendChild(filterComponent.render()[1]);
+    mainFilterElement.appendChild(filterComponent.render());
 
     filterComponent.onFilter = () => {
       containerStatistic.classList.add(`visually-hidden`);
@@ -127,7 +126,18 @@ tasks = createTasks(25);
 renderFilters(filtersData, tasks);
 controlStatisticElement.addEventListener(`click`, onClickStatistic);
 
-statisticInput.placeholder = moment(moment().startOf(`week`)).format(`D MMM`) + ` - ` + moment(moment().endOf(`week`)).format(`D MMM`);
-
-flatpickr(statisticInput, {altInput: true, altFormat: `j F`, mode: `range`, dateFormat: `j F Y`});
+statisticInput.placeholder = `${moment().startOf(`week`).format(`D MMM`)} - ${moment().endOf(`week`).format(`D MMM`)}`;
+flatpickr(statisticInput, {
+  altInput: true,
+  altFormat: `j F`,
+  mode: `range`,
+  dateFormat: `Y-m-d`,
+  onChange(selectedDates, dateStr, instance) {
+    dateStr = moment(selectedDates[0], `YYYY-MMMM-DD`).format(`D MMM`);
+    if (selectedDates[1]) {
+      dateStr = `${moment(selectedDates[0], `YYYY-MMMM-DD`).format(`D MMM`)} - ${moment(selectedDates[1], `YYYY-MMMM-DD`).format(`D MMM`)}`;
+    }
+    instance.altInput.value = dateStr;
+  }
+});
 statisticInput.addEventListener(`change`, onStaticticInputChange);
