@@ -94,6 +94,10 @@ export default class TaskEdit extends Component {
     this._onSubmit = fn;
   }
 
+  set onDelete(fn) {
+    this._onDelete = fn;
+  }
+
   renderColor(it) {
     let checked = (this._color === it) ? `checked` : ``;
 
@@ -325,6 +329,10 @@ export default class TaskEdit extends Component {
     this._element.querySelector(`.card__repeat-toggle`)
         .addEventListener(`click`, this._onChangeRepeated);
 
+
+    this._element.querySelector(`.card__delete`)
+      .addEventListener(`click`, this._onDelete);
+
     if (this._state.isDate) {
       flatpickr(this._element.querySelector(`.card__date`), {altInput: true, altFormat: `j F`, dateFormat: `j F Y`});
       flatpickr(this._element.querySelector(`.card__time`), {enableTime: true, noCalendar: true, altInput: true, altFormat: `h:i K`, dateFormat: `h:i K`});
@@ -340,6 +348,9 @@ export default class TaskEdit extends Component {
         .removeEventListener(`click`, this._onChangeDate);
     this._element.querySelector(`.card__repeat-toggle`)
         .removeEventListener(`click`, this._onChangeRepeated);
+
+    this._element.querySelector(`.card__delete`)
+        .removeEventListener(`click`, this._onDelete);
   }
 
   update(data) {

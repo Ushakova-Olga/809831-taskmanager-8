@@ -6,5 +6,5 @@ export const months = [`January`, `February`, `Marth`, `April`, `May`, `June`,
 export function createElement(template) {
   const newElement = document.createElement(`div`);
   newElement.innerHTML = template;
-  return newElement.firstChild;
+  return newElement.firstElementChild;
 }

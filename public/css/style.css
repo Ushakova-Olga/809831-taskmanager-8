@@ -132,14 +132,14 @@ body {
   opacity: 0.7;
   transition: opacity 0.2s ease-out;
 }
-.filter__input:checked + .filter__label {
+.filter__input:checked + .filter__label--name {
   text-shadow: 1px 0 0 #000000;
 }
-.filter__input:checked + .filter__label:hover {
+.filter__input:checked + .filter__label--name:hover {
   text-shadow: 1px 0 0 #000000;
   opacity: 1;
 }
-.filter__input:disabled + .filter__label {
+.filter__input:disabled + .filter__label--name {
   color: #e7e3e3;
 }
 
