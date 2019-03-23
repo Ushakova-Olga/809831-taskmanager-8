@@ -1,10 +1,15 @@
-import makeData from './data.js';
 import Task from './task.js';
 import TaskEdit from './task-edit.js';
 import Filter from './filter.js';
 import moment from 'moment';
 import flatpickr from 'flatpickr';
 import {createTagChart, createColorChart} from './statistik.js';
+import API from './api.js';
+
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
+const END_POINT = `https://es8-demo-srv.appspot.com/task-manager`;
+
+const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
 const mainFilterElement = document.querySelector(`.main__filter`);
 const boardTasksElement = document.querySelector(`.board__tasks`);
@@ -16,19 +21,8 @@ const tagsCtxWrap = document.querySelector(`.statistic__tags-wrap`);
 const colorsCtxWrap = document.querySelector(`.statistic__colors-wrap`);
 const tagsCtx = document.querySelector(`.statistic__tags`);
 const colorsCtx = document.querySelector(`.statistic__colors`);
+const boardNoTasks = document.querySelector(`.board__no-tasks`);
 
-const deleteTask = (tasks, i) => {
-  tasks.splice(i, 1);
-  return tasks;
-};
-
-const createTasks = (count) => {
-  const tasks = [];
-  for (let i = 0; i < count; i++) {
-    tasks.push(makeData(i));
-  }
-  return tasks;
-};
 
 const renderTasks = (tasks) => {
   boardTasksElement.innerHTML = ``;
@@ -49,21 +43,63 @@ const renderTasks = (tasks) => {
     };
 
     editTaskComponent.onSubmit = (newObject) => {
-      task.title = newObject.title;
+      editTaskComponent.element.querySelector(`.card__inner`).style.borderColor = `#000000`;
       task.tags = newObject.tags;
       task.color = newObject.color;
       task.repeatingDays = newObject.repeatingDays;
       task.dueDate = newObject.dueDate;
 
-      taskComponent.update(task);
-      taskComponent.render();
-      boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
-      editTaskComponent.unrender();
+      const block = () => {
+        editTaskComponent.element.querySelector(`.card__save`).disabled = true;
+        editTaskComponent.element.querySelector(`.card__save`).innerHTML = `Saving...`;
+        editTaskComponent.element.querySelector(`.card__text`).disabled = true;
+      };
+
+      const unblock = () => {
+        editTaskComponent.element.querySelector(`.card__save`).disabled = false;
+        editTaskComponent.element.querySelector(`.card__save`).innerHTML = `Save`;
+        editTaskComponent.element.querySelector(`.card__text`).disabled = false;
+      };
+
+      block();
+
+      api.updateTask({id: task.id, data: task.toRAW()})
+      .then((response) => {
+        if (response) {
+          unblock();
+          taskComponent.update(response);
+          taskComponent.render();
+          boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
+          editTaskComponent.unrender();
+        }
+      }).catch(() => {
+        editTaskComponent.shake();
+        unblock();
+      });
     };
 
-    editTaskComponent.onDelete = () => {
-      deleteTask(tasks, i);
-      editTaskComponent.unrender();
+    editTaskComponent.onDelete = ({id}) => {
+      editTaskComponent.element.querySelector(`.card__inner`).style.borderColor = `#000000`;
+      const block = () => {
+        editTaskComponent.element.querySelector(`.card__delete`).disabled = true;
+        editTaskComponent.element.querySelector(`.card__delete`).innerHTML = `Deleting...`;
+        editTaskComponent.element.querySelector(`.card__text`).disabled = true;
+      };
+
+      const unblock = () => {
+        editTaskComponent.element.querySelector(`.card__delete`).disabled = false;
+        editTaskComponent.element.querySelector(`.card__delete`).innerHTML = `Delete`;
+        editTaskComponent.element.querySelector(`.card__text`).disabled = false;
+      };
+
+      block();
+      api.deleteTask({id})
+        .then(() => api.getTasks())
+        .then(renderTasks)
+        .catch(() => {
+          editTaskComponent.shake();
+          unblock();
+        });
     };
   }
 };
@@ -104,6 +140,10 @@ const renderFilters = (data, tasks) => {
       }
       return renderTasks(tasks);
     };
+
+    if (filterComponent._checked) {
+      filterComponent._onFilter();
+    }
   });
 };
 
@@ -121,9 +161,29 @@ const onStaticticInputChange = function () {
   createColorChart(colorsCtx);
 };
 
-let tasks = [];
-tasks = createTasks(25);
-renderFilters(filtersData, tasks);
+const startLoadTasks = () => {
+  boardTasksElement.classList.add(`visually-hidden`);
+  boardNoTasks.classList.remove(`visually-hidden`);
+  boardNoTasks.innerHTML = `Loading tasks...`;
+};
+
+const errorLoadTasks = () => {
+  boardNoTasks.innerHTML = `Something went wrong while loading your tasks. Check your connection or try again later`;
+};
+
+const stopLoadTasks = () => {
+  boardTasksElement.classList.remove(`visually-hidden`);
+  boardNoTasks.classList.add(`visually-hidden`);
+};
+
+startLoadTasks();
+
+api.getTasks()
+  .then((tasks) => {
+    renderFilters(filtersData, tasks);
+  }).then(stopLoadTasks)
+  .catch(errorLoadTasks);
+
 controlStatisticElement.addEventListener(`click`, onClickStatistic);
 
 statisticInput.placeholder = `${moment().startOf(`week`).format(`D MMM`)} - ${moment().endOf(`week`).format(`D MMM`)}`;
