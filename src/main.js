@@ -1,10 +1,15 @@
-import makeData from './data.js';
 import Task from './task.js';
 import TaskEdit from './task-edit.js';
 import Filter from './filter.js';
 import moment from 'moment';
 import flatpickr from 'flatpickr';
 import {createTagChart, createColorChart} from './statistik.js';
+import API from './api.js';
+
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
+const END_POINT = `https://es8-demo-srv.appspot.com/task-manager`;
+
+const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
 const mainFilterElement = document.querySelector(`.main__filter`);
 const boardTasksElement = document.querySelector(`.board__tasks`);
@@ -16,18 +21,39 @@ const tagsCtxWrap = document.querySelector(`.statistic__tags-wrap`);
 const colorsCtxWrap = document.querySelector(`.statistic__colors-wrap`);
 const tagsCtx = document.querySelector(`.statistic__tags`);
 const colorsCtx = document.querySelector(`.statistic__colors`);
+const boardNoTasks = document.querySelector(`.board__no-tasks`);
+let filters = [];
 
-const deleteTask = (tasks, i) => {
-  tasks.splice(i, 1);
+// функция возвращает отфильтрованные таски
+const filteredTasks = (filterName, tasks) => {
+  const yesterday = Date.parse(moment().startOf(`day`).toDate());
+  const tomorrow = Date.parse(moment().endOf(`day`).toDate());
+
+  switch (filterName) {
+    case `All`:
+      return tasks;
+
+    case `Overdue`:
+      return tasks.filter((it) => it.dueDate < Date.now());
+
+    case `Today`:
+      return tasks.filter((it) => (it.dueDate < tomorrow) && (it.dueDate > yesterday));
+
+    case `Repeating`:
+      return tasks.filter((it) => [...Object.entries(it.repeatingDays)]
+          .some((rec) => rec[1]));
+  }
   return tasks;
 };
 
-const createTasks = (count) => {
-  const tasks = [];
-  for (let i = 0; i < count; i++) {
-    tasks.push(makeData(i));
-  }
-  return tasks;
+// функция обновляет лейблы с количеством тасков у всех фильтров
+const updateFilterLabels = (tasks) => {
+  filters.forEach((filter)=> {
+    const newCount = filteredTasks(filter._name, tasks).length;
+    if (filter._count !== newCount) {
+      filter.updateCount(newCount);
+    }
+  });
 };
 
 const renderTasks = (tasks) => {
@@ -49,21 +75,43 @@ const renderTasks = (tasks) => {
     };
 
     editTaskComponent.onSubmit = (newObject) => {
-      task.title = newObject.title;
+      editTaskComponent.setBorderColor(`#000000`);
       task.tags = newObject.tags;
       task.color = newObject.color;
       task.repeatingDays = newObject.repeatingDays;
       task.dueDate = newObject.dueDate;
 
-      taskComponent.update(task);
-      taskComponent.render();
-      boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
-      editTaskComponent.unrender();
+      editTaskComponent.blockSave();
+
+      api.updateTask({id: task.id, data: task.toRAW()})
+      .then((response) => {
+        if (response) {
+          editTaskComponent.unblockSave();
+          taskComponent.update(response);
+          taskComponent.render();
+          boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
+          editTaskComponent.unrender();
+          updateFilterLabels(tasks);
+        }
+      }).catch(() => {
+        editTaskComponent.shake();
+      }).then(() => {
+        editTaskComponent.unblockSave();
+      });
     };
 
-    editTaskComponent.onDelete = () => {
-      deleteTask(tasks, i);
-      editTaskComponent.unrender();
+    editTaskComponent.onDelete = ({id}) => {
+      editTaskComponent.setBorderColor(`#000000`);
+      editTaskComponent.blockDelete();
+      api.deleteTask({id})
+        .then(() => api.getTasks())
+        .then((tasksNew) => {
+          renderFilters(filtersData, tasksNew);
+        })
+        .catch(() => {
+          editTaskComponent.shake();
+          editTaskComponent.unblockDelete();
+        });
     };
   }
 };
@@ -79,31 +127,26 @@ const filtersData = [
 ];
 
 const renderFilters = (data, tasks) => {
+  filters = [];
   mainFilterElement.innerHTML = ``;
 
   data.forEach((filter) => {
+    const tasksFilter = filteredTasks(filter.name, tasks);
+    filter.count = tasksFilter.length;
     const filterComponent = new Filter(filter);
+    filters.push(filterComponent);
     mainFilterElement.appendChild(filterComponent.render());
 
     filterComponent.onFilter = () => {
       containerStatistic.classList.add(`visually-hidden`);
       containerTasks.classList.remove(`visually-hidden`);
-      switch (filterComponent._name) {
-        case `All`:
-          return renderTasks(tasks);
-
-        case `Overdue`:
-          return renderTasks(tasks.filter((it) => it.dueDate < Date.now()));
-
-        case `Today`:
-          return renderTasks(tasks.filter(() => true));
-
-        case `Repeating`:
-          return renderTasks(tasks.filter((it) => [...Object.entries(it.repeatingDays)]
-              .some((rec) => rec[1])));
-      }
-      return renderTasks(tasks);
+      updateFilterLabels(tasks);
+      renderTasks(filteredTasks(filter.name, tasks));
     };
+
+    if (filterComponent._checked) {
+      filterComponent._onFilter();
+    }
   });
 };
 
@@ -121,9 +164,29 @@ const onStaticticInputChange = function () {
   createColorChart(colorsCtx);
 };
 
-let tasks = [];
-tasks = createTasks(25);
-renderFilters(filtersData, tasks);
+const startLoadTasks = () => {
+  boardTasksElement.classList.add(`visually-hidden`);
+  boardNoTasks.classList.remove(`visually-hidden`);
+  boardNoTasks.innerHTML = `Loading tasks...`;
+};
+
+const errorLoadTasks = () => {
+  boardNoTasks.innerHTML = `Something went wrong while loading your tasks. Check your connection or try again later`;
+};
+
+const stopLoadTasks = () => {
+  boardTasksElement.classList.remove(`visually-hidden`);
+  boardNoTasks.classList.add(`visually-hidden`);
+};
+
+startLoadTasks();
+
+api.getTasks()
+  .then((tasks) => {
+    renderFilters(filtersData, tasks);
+  }).then(stopLoadTasks)
+  .catch(errorLoadTasks);
+
 controlStatisticElement.addEventListener(`click`, onClickStatistic);
 
 statisticInput.placeholder = `${moment().startOf(`week`).format(`D MMM`)} - ${moment().endOf(`week`).format(`D MMM`)}`;

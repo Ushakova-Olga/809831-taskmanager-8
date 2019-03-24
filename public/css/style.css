@@ -191,6 +191,7 @@ body {
   background-color: #ffffff;
   outline: 0;
 }
+
 .card--deadline .card__inner {
   box-shadow: 0 2px 38px 0 rgba(240, 0, 0, 0.19);
 }
@@ -201,6 +202,7 @@ body {
     0 14px 38px 0 rgba(35, 113, 245, 0.07);
   z-index: 1;
 }
+
 .card__control {
   display: flex;
   opacity: 0;

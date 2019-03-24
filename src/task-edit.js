@@ -25,6 +25,7 @@ export default class TaskEdit extends Component {
 
     this._onChangeDate = this._onChangeDate.bind(this);
     this._onChangeRepeated = this._onChangeRepeated.bind(this);
+    this._onDeleteButtonClick = this._onDeleteButtonClick.bind(this);
   }
 
   _processForm(formData) {
@@ -95,7 +96,13 @@ export default class TaskEdit extends Component {
   }
 
   set onDelete(fn) {
-    this._onDelete = fn;
+    this._onDelete = () => fn({id: this._id});
+  }
+
+  _onDeleteButtonClick() {
+    if (typeof this._onDelete === `function`) {
+      this._onDelete();
+    }
   }
 
   renderColor(it) {
@@ -154,6 +161,34 @@ export default class TaskEdit extends Component {
 
   _repeatDisabled() {
     return this._state.isRepeated ? `` : `disabled`;
+  }
+
+  blockSave() {
+    this._element.querySelector(`.card__save`).disabled = true;
+    this._element.querySelector(`.card__save`).innerHTML = `Saving...`;
+    this._element.querySelector(`.card__text`).disabled = true;
+  }
+
+  unblockSave() {
+    this._element.querySelector(`.card__save`).disabled = false;
+    this._element.querySelector(`.card__save`).innerHTML = `Save`;
+    this._element.querySelector(`.card__text`).disabled = false;
+  }
+
+  blockDelete() {
+    this._element.querySelector(`.card__delete`).disabled = true;
+    this._element.querySelector(`.card__delete`).innerHTML = `Deleting...`;
+    this._element.querySelector(`.card__text`).disabled = true;
+  }
+
+  unblockDelete() {
+    this._element.querySelector(`.card__delete`).disabled = false;
+    this._element.querySelector(`.card__delete`).innerHTML = `Delete`;
+    this._element.querySelector(`.card__text`).disabled = false;
+  }
+
+  setBorderColor(color) {
+    this._element.querySelector(`.card__inner`).style.borderColor = color;
   }
 
   _renderRepeatDay(data) {
@@ -329,9 +364,8 @@ export default class TaskEdit extends Component {
     this._element.querySelector(`.card__repeat-toggle`)
         .addEventListener(`click`, this._onChangeRepeated);
 
-
     this._element.querySelector(`.card__delete`)
-      .addEventListener(`click`, this._onDelete);
+        .addEventListener(`click`, this._onDeleteButtonClick);
 
     if (this._state.isDate) {
       flatpickr(this._element.querySelector(`.card__date`), {altInput: true, altFormat: `j F`, dateFormat: `j F Y`});
@@ -350,7 +384,7 @@ export default class TaskEdit extends Component {
         .removeEventListener(`click`, this._onChangeRepeated);
 
     this._element.querySelector(`.card__delete`)
-        .removeEventListener(`click`, this._onDelete);
+        .removeEventListener(`click`, this._onDeleteButtonClick);
   }
 
   update(data) {
@@ -359,6 +393,17 @@ export default class TaskEdit extends Component {
     this._color = data.color;
     this._repeatingDays = data.repeatingDays;
     this._dueDate = data.dueDate ? data.dueDate : this._dueDate;
+  }
+
+  // Если произошла ошибка при загрузке дынных на сервер, показываем анимацию
+  shake() {
+    this._element.querySelector(`.card__inner`).style.borderColor = `#ff0000`;
+    const ANIMATION_TIMEOUT = 600;
+    this._element.style.animation = `shake ${ANIMATION_TIMEOUT / 1000}s`;
+
+    setTimeout(() => {
+      this._element.style.animation = ``;
+    }, ANIMATION_TIMEOUT);
   }
 
   static createMapper(target) {
