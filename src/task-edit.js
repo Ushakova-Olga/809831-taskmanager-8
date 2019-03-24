@@ -187,6 +187,10 @@ export default class TaskEdit extends Component {
     this._element.querySelector(`.card__text`).disabled = false;
   }
 
+  setBorderColor(color) {
+    this._element.querySelector(`.card__inner`).style.borderColor = color;
+  }
+
   _renderRepeatDay(data) {
     const checked = data.value ? `checked` : ``;
     return `<input

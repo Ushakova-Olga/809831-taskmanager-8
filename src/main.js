@@ -75,7 +75,7 @@ const renderTasks = (tasks) => {
     };
 
     editTaskComponent.onSubmit = (newObject) => {
-      editTaskComponent.element.querySelector(`.card__inner`).style.borderColor = `#000000`;
+      editTaskComponent.setBorderColor(`#000000`);
       task.tags = newObject.tags;
       task.color = newObject.color;
       task.repeatingDays = newObject.repeatingDays;
@@ -92,17 +92,16 @@ const renderTasks = (tasks) => {
           boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
           editTaskComponent.unrender();
           updateFilterLabels(tasks);
-
         }
       }).catch(() => {
         editTaskComponent.shake();
+      }).then(() => {
         editTaskComponent.unblockSave();
       });
     };
 
     editTaskComponent.onDelete = ({id}) => {
-      editTaskComponent.element.querySelector(`.card__inner`).style.borderColor = `#000000`;
-
+      editTaskComponent.setBorderColor(`#000000`);
       editTaskComponent.blockDelete();
       api.deleteTask({id})
         .then(() => api.getTasks())
