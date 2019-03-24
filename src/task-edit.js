@@ -163,6 +163,30 @@ export default class TaskEdit extends Component {
     return this._state.isRepeated ? `` : `disabled`;
   }
 
+  blockSave() {
+    this._element.querySelector(`.card__save`).disabled = true;
+    this._element.querySelector(`.card__save`).innerHTML = `Saving...`;
+    this._element.querySelector(`.card__text`).disabled = true;
+  }
+
+  unblockSave() {
+    this._element.querySelector(`.card__save`).disabled = false;
+    this._element.querySelector(`.card__save`).innerHTML = `Save`;
+    this._element.querySelector(`.card__text`).disabled = false;
+  }
+
+  blockDelete() {
+    this._element.querySelector(`.card__delete`).disabled = true;
+    this._element.querySelector(`.card__delete`).innerHTML = `Deleting...`;
+    this._element.querySelector(`.card__text`).disabled = true;
+  }
+
+  unblockDelete() {
+    this._element.querySelector(`.card__delete`).disabled = false;
+    this._element.querySelector(`.card__delete`).innerHTML = `Delete`;
+    this._element.querySelector(`.card__text`).disabled = false;
+  }
+
   _renderRepeatDay(data) {
     const checked = data.value ? `checked` : ``;
     return `<input

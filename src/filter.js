@@ -42,6 +42,10 @@ export default class Filter extends Component {
     `;
   }
 
+  updateCount(newCount) {
+    this._element.querySelector(`.filter__${this._id}-count`).innerHTML = newCount;
+  }
+
   render() {
     this._element = createElement(this.template);
     this.bind();

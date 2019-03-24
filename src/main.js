@@ -22,7 +22,39 @@ const colorsCtxWrap = document.querySelector(`.statistic__colors-wrap`);
 const tagsCtx = document.querySelector(`.statistic__tags`);
 const colorsCtx = document.querySelector(`.statistic__colors`);
 const boardNoTasks = document.querySelector(`.board__no-tasks`);
+const filters = [];
 
+// функция возвращает отфильтрованные таски
+const filteredTasks = (filterName, tasks) => {
+  const yesterday = Date.parse(moment().startOf(`day`).toDate());
+  const tomorrow = Date.parse(moment().endOf(`day`).toDate());
+
+  switch (filterName) {
+    case `All`:
+      return tasks;
+
+    case `Overdue`:
+      return tasks.filter((it) => it.dueDate < Date.now());
+
+    case `Today`:
+      return tasks.filter((it) => (it.dueDate < tomorrow) && (it.dueDate > yesterday));
+
+    case `Repeating`:
+      return tasks.filter((it) => [...Object.entries(it.repeatingDays)]
+          .some((rec) => rec[1]));
+  }
+  return tasks;
+};
+
+// функция обновляет лейблы с количеством тасков у всех фильтров
+const updateFilterLabels = (tasks) => {
+  filters.forEach((filter)=> {
+    const newCount = filteredTasks(filter._name, tasks).length;
+    if (filter._count !== newCount) {
+      filter.updateCount(newCount);
+    }
+  });
+};
 
 const renderTasks = (tasks) => {
   boardTasksElement.innerHTML = ``;
@@ -49,56 +81,35 @@ const renderTasks = (tasks) => {
       task.repeatingDays = newObject.repeatingDays;
       task.dueDate = newObject.dueDate;
 
-      const block = () => {
-        editTaskComponent.element.querySelector(`.card__save`).disabled = true;
-        editTaskComponent.element.querySelector(`.card__save`).innerHTML = `Saving...`;
-        editTaskComponent.element.querySelector(`.card__text`).disabled = true;
-      };
-
-      const unblock = () => {
-        editTaskComponent.element.querySelector(`.card__save`).disabled = false;
-        editTaskComponent.element.querySelector(`.card__save`).innerHTML = `Save`;
-        editTaskComponent.element.querySelector(`.card__text`).disabled = false;
-      };
-
-      block();
+      editTaskComponent.blockSave();
 
       api.updateTask({id: task.id, data: task.toRAW()})
       .then((response) => {
         if (response) {
-          unblock();
+          editTaskComponent.unblockSave();
           taskComponent.update(response);
           taskComponent.render();
           boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
           editTaskComponent.unrender();
+          updateFilterLabels(tasks);
+
         }
       }).catch(() => {
         editTaskComponent.shake();
-        unblock();
+        editTaskComponent.unblockSave();
       });
     };
 
     editTaskComponent.onDelete = ({id}) => {
       editTaskComponent.element.querySelector(`.card__inner`).style.borderColor = `#000000`;
-      const block = () => {
-        editTaskComponent.element.querySelector(`.card__delete`).disabled = true;
-        editTaskComponent.element.querySelector(`.card__delete`).innerHTML = `Deleting...`;
-        editTaskComponent.element.querySelector(`.card__text`).disabled = true;
-      };
 
-      const unblock = () => {
-        editTaskComponent.element.querySelector(`.card__delete`).disabled = false;
-        editTaskComponent.element.querySelector(`.card__delete`).innerHTML = `Delete`;
-        editTaskComponent.element.querySelector(`.card__text`).disabled = false;
-      };
-
-      block();
+      editTaskComponent.blockDelete();
       api.deleteTask({id})
         .then(() => api.getTasks())
         .then(renderTasks)
         .catch(() => {
           editTaskComponent.shake();
-          unblock();
+          editTaskComponent.unblockDelete();
         });
     };
   }
@@ -118,27 +129,17 @@ const renderFilters = (data, tasks) => {
   mainFilterElement.innerHTML = ``;
 
   data.forEach((filter) => {
+    const tasksFilter = filteredTasks(filter.name, tasks);
+    filter.count = tasksFilter.length;
     const filterComponent = new Filter(filter);
+    filters.push(filterComponent);
     mainFilterElement.appendChild(filterComponent.render());
 
     filterComponent.onFilter = () => {
       containerStatistic.classList.add(`visually-hidden`);
       containerTasks.classList.remove(`visually-hidden`);
-      switch (filterComponent._name) {
-        case `All`:
-          return renderTasks(tasks);
-
-        case `Overdue`:
-          return renderTasks(tasks.filter((it) => it.dueDate < Date.now()));
-
-        case `Today`:
-          return renderTasks(tasks.filter(() => true));
-
-        case `Repeating`:
-          return renderTasks(tasks.filter((it) => [...Object.entries(it.repeatingDays)]
-              .some((rec) => rec[1])));
-      }
-      return renderTasks(tasks);
+      updateFilterLabels(tasks);
+      renderTasks(filteredTasks(filter.name, tasks));
     };
 
     if (filterComponent._checked) {
