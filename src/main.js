@@ -22,7 +22,7 @@ const colorsCtxWrap = document.querySelector(`.statistic__colors-wrap`);
 const tagsCtx = document.querySelector(`.statistic__tags`);
 const colorsCtx = document.querySelector(`.statistic__colors`);
 const boardNoTasks = document.querySelector(`.board__no-tasks`);
-const filters = [];
+let filters = [];
 
 // функция возвращает отфильтрованные таски
 const filteredTasks = (filterName, tasks) => {
@@ -106,7 +106,9 @@ const renderTasks = (tasks) => {
       editTaskComponent.blockDelete();
       api.deleteTask({id})
         .then(() => api.getTasks())
-        .then(renderTasks)
+        .then((tasksNew) => {
+          renderFilters(filtersData, tasksNew);
+        })
         .catch(() => {
           editTaskComponent.shake();
           editTaskComponent.unblockDelete();
@@ -126,6 +128,7 @@ const filtersData = [
 ];
 
 const renderFilters = (data, tasks) => {
+  filters = [];
   mainFilterElement.innerHTML = ``;
 
   data.forEach((filter) => {
