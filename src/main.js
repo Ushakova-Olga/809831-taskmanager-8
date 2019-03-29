@@ -5,11 +5,24 @@ import moment from 'moment';
 import flatpickr from 'flatpickr';
 import {createTagChart, createColorChart} from './statistik.js';
 import API from './api.js';
+import Provider from './provider.js';
+import Store from './store.js';
 
-const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${Math.random()}`;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZA8`;
 const END_POINT = `https://es8-demo-srv.appspot.com/task-manager`;
+const TASKS_STORE_KEY = `tasks-store-key`;
 
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
+const store = new Store({key: TASKS_STORE_KEY, storage: localStorage});
+const provider = new Provider({api, store, generateId: () => String(Date.now())});
+
+window.addEventListener(`offline`, () => {
+  document.title = `${document.title}[OFFLINE]`;
+});
+window.addEventListener(`online`, () => {
+  document.title = document.title.split(`[OFFLINE]`)[0];
+  provider.syncTasks();
+});
 
 const mainFilterElement = document.querySelector(`.main__filter`);
 const boardTasksElement = document.querySelector(`.board__tasks`);
@@ -80,30 +93,30 @@ const renderTasks = (tasks) => {
       task.color = newObject.color;
       task.repeatingDays = newObject.repeatingDays;
       task.dueDate = newObject.dueDate;
+      task.title = newObject.title;
 
       editTaskComponent.blockSave();
 
-      api.updateTask({id: task.id, data: task.toRAW()})
+      provider.updateTask({id: task.id, data: task.toRAW()})
       .then((response) => {
+        editTaskComponent.unblockSave();
         if (response) {
-          editTaskComponent.unblockSave();
           taskComponent.update(response);
           taskComponent.render();
           boardTasksElement.replaceChild(taskComponent.element, editTaskComponent.element);
           editTaskComponent.unrender();
           updateFilterLabels(tasks);
         }
-      }).catch(() => {
+      })
+      .catch(() => {
         editTaskComponent.shake();
-      }).then(() => {
-        editTaskComponent.unblockSave();
       });
     };
 
     editTaskComponent.onDelete = ({id}) => {
       editTaskComponent.setBorderColor(`#000000`);
       editTaskComponent.blockDelete();
-      api.deleteTask({id})
+      provider.deleteTask({id})
         .then(() => api.getTasks())
         .then((tasksNew) => {
           renderFilters(filtersData, tasksNew);
@@ -181,7 +194,7 @@ const stopLoadTasks = () => {
 
 startLoadTasks();
 
-api.getTasks()
+provider.getTasks()
   .then((tasks) => {
     renderFilters(filtersData, tasks);
   }).then(stopLoadTasks)
